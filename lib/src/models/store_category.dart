@@ -6,6 +6,8 @@ class StoreCategory {
   const StoreCategory({
     required this.id,
     required this.name,
+    required this.description,
+    this.createdAt,
     required this.itemCount,
     required this.icon,
     this.products = const [],
@@ -13,6 +15,8 @@ class StoreCategory {
 
   final String id;
   final String name;
+  final String description;
+  final DateTime? createdAt;
   final int itemCount;
   final IconData icon;
   final List<Product> products;
@@ -22,6 +26,7 @@ class StoreCategory {
     final description = json['description'] as String? ?? '';
     final rawId = json['id'];
     final categoryId = rawId?.toString() ?? _slugify(name);
+    final createdAt = DateTime.tryParse(json['created_at'] as String? ?? '');
     final products = (json['products'] as List<dynamic>? ?? const [])
         .whereType<Map<String, dynamic>>()
         .map(
@@ -32,6 +37,8 @@ class StoreCategory {
     return StoreCategory(
       id: categoryId,
       name: name,
+      description: description,
+      createdAt: createdAt,
       itemCount: (json['item_count'] as num?)?.toInt() ?? products.length,
       icon: _pickIcon(name, description),
       products: products,
@@ -67,5 +74,22 @@ class StoreCategory {
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
         .replaceAll(RegExp(r'^-|-$'), '');
+  }
+
+  static StoreCategory fromProducts(String id, List<Product> products) {
+    final sample = products.first;
+    final name = sample.categoryName?.trim().isNotEmpty == true
+        ? sample.categoryName!.trim()
+        : 'Category $id';
+    final description = sample.categoryDescription ?? name;
+    return StoreCategory(
+      id: id,
+      name: name,
+      description: description,
+      createdAt: null,
+      itemCount: products.length,
+      icon: _pickIcon(name, description),
+      products: products,
+    );
   }
 }

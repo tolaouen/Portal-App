@@ -1,10 +1,16 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
-import 'login_screen.dart';
-import '../state/store_scope.dart';
 import '../theme/app_theme.dart';
+import '../state/store_scope.dart';
+import '../widgets/store_widgets.dart';
+import 'edit_profile_screen.dart';
 import 'info_screen.dart';
+import 'login_screen.dart';
 import 'orders_screen.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -18,24 +24,37 @@ class ProfileScreen extends StatelessWidget {
         ? user!.fullName
         : 'Guest User';
     final email = user?.email ?? 'Not signed in';
+    final profileImageBytes = _decodeProfileImage(
+      controller.profileImageBase64,
+    );
 
     return Scaffold(
-      backgroundColor: AppTheme.dark,
+      backgroundColor: AppTheme.mist,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 96),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const CircleAvatar(
-                    radius: 34,
+                  CircleAvatar(
+                    radius: 30,
                     backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.engineering,
-                      size: 38,
-                      color: AppTheme.brand,
-                    ),
+                    child: profileImageBytes != null
+                        ? ClipOval(
+                            child: Image.memory(
+                              profileImageBytes,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.engineering,
+                            size: 34,
+                            color: AppTheme.brand,
+                          ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -43,31 +62,41 @@ class ProfileScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          fullName,
+                          'Hello, $fullName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
+                            fontSize: 19,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           email,
-                          style: const TextStyle(color: Colors.white70),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.black54),
                         ),
+                        if (isLoggedIn) ...[
+                          const SizedBox(height: 4),
+                          InkWell(
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const EditProfileScreen(),
+                              ),
+                            ),
+                            child: const Text(
+                              'Edit Profile',
+                              style: TextStyle(
+                                color: AppTheme.brand,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.notifications_none,
-                      color: Colors.white,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.settings, color: Colors.white),
                   ),
                 ],
               ),
@@ -76,23 +105,35 @@ class ProfileScreen extends StatelessWidget {
                 child: ListView(
                   children: [
                     _ProfileAction(
-                      icon: Icons.receipt_long,
+                      icon: Icons.receipt_long_outlined,
                       label: 'My Orders',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const OrdersScreen()),
-                      ),
+                      onTap: () {
+                        if (!controller.isLoggedIn) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
+                          return;
+                        }
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const OrdersScreen(),
+                          ),
+                        );
+                      },
                     ),
                     _ProfileAction(
                       icon: Icons.location_on_outlined,
-                      label: 'My Addresses',
+                      label: 'My Address',
                       onTap: () => _openInfo(
                         context,
-                        'My Addresses',
+                        'My Address',
                         controller.shippingAddress,
                       ),
                     ),
                     _ProfileAction(
-                      icon: Icons.payments_outlined,
+                      icon: Icons.payment_outlined,
                       label: 'Payment Methods',
                       onTap: () => _openInfo(
                         context,
@@ -101,27 +142,16 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     _ProfileAction(
-                      icon: Icons.favorite_border,
-                      label: 'Wishlist',
-                      onTap: () => _openInfo(
-                        context,
-                        'Wishlist',
-                        controller.wishlistProducts
-                            .map((item) => item.name)
-                            .join('\n'),
-                      ),
-                    ),
-                    _ProfileAction(
                       icon: Icons.settings_outlined,
                       label: 'Settings',
-                      onTap: () => _openInfo(
-                        context,
-                        'Settings',
-                        'Notification, language, and theme settings can live here later.',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
                       ),
                     ),
                     _ProfileAction(
-                      icon: Icons.help_outline,
+                      icon: Icons.info_outline,
                       label: 'Help & Support',
                       onTap: () => _openInfo(
                         context,
@@ -129,51 +159,51 @@ class ProfileScreen extends StatelessWidget {
                         'Email: support@constructiontools.app\nPhone: +855 12 345 678',
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 34),
                     if (isLoggedIn)
-                      ListTile(
-                        onTap: () async {
-                          final messenger = ScaffoldMessenger.of(context);
-                          await controller.logout();
-                          if (!context.mounted) {
-                            return;
-                          }
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text('Logged out successfully.')),
-                          );
-                        },
-                        leading: const Icon(
-                          Icons.logout,
-                          color: Colors.redAccent,
-                        ),
-                        title: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.w700,
+                      SizedBox(
+                        height: 62,
+                        child: FilledButton.icon(
+                          onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            await controller.logout();
+                            if (!context.mounted) {
+                              return;
+                            }
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Logged out successfully.'),
+                              ),
+                            );
+                          },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF3B3B),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          icon: const Icon(Icons.logout, size: 24),
+                          label: const Text(
+                            'Logout',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       )
                     else
-                      ListTile(
-                        onTap: () {
+                      PrimaryButton(
+                        label: 'Sign In',
+                        icon: Icons.login,
+                        onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => const LoginScreen(),
                             ),
                           );
                         },
-                        leading: const Icon(
-                          Icons.login,
-                          color: AppTheme.brand,
-                        ),
-                        title: const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: AppTheme.brand,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
                       ),
                   ],
                 ),
@@ -192,6 +222,17 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  Uint8List? _decodeProfileImage(String? rawImage) {
+    if (rawImage == null || rawImage.isEmpty) {
+      return null;
+    }
+    try {
+      return base64Decode(rawImage);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 class _ProfileAction extends StatelessWidget {
@@ -207,18 +248,27 @@ class _ProfileAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return InkWell(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 2),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.black87, size: 29),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, size: 28),
+          ],
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white54),
     );
   }
 }

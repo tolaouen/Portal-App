@@ -29,6 +29,35 @@ class AuthUser {
 
   String get fullName => '$firstName $lastName'.trim();
 
+  AuthUser copyWith({
+    String? username,
+    String? email,
+    String? firstName,
+    String? lastName,
+    DateTime? dateOfBirth,
+    String? gender,
+    String? phone,
+    int? roleId,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return AuthUser(
+      id: id,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      gender: gender ?? this.gender,
+      phone: phone ?? this.phone,
+      roleId: roleId ?? this.roleId,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
       id: json['id'] as int,

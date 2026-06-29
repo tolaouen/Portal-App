@@ -5,29 +5,59 @@ import '../state/store_scope.dart';
 import '../widgets/store_widgets.dart';
 import 'product_detail_screen.dart';
 
-class CatalogScreen extends StatelessWidget {
+class CatalogScreen extends StatefulWidget {
   const CatalogScreen({
     super.key,
     required this.categoryId,
     required this.title,
+    this.popularOnly = false,
   });
 
   final String categoryId;
   final String title;
+  final bool popularOnly;
+
+  @override
+  State<CatalogScreen> createState() => _CatalogScreenState();
+}
+
+class _CatalogScreenState extends State<CatalogScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      StoreScope.of(
+        context,
+      ).ensureProductsLoadedForCategory(widget.categoryId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final controller = StoreScope.of(context);
-    final products = controller.productsByCategory(categoryId);
+    final products = widget.popularOnly
+        ? controller.popularProducts()
+        : controller.productsByCategory(widget.categoryId);
 
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(
+          widget.title,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
         actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.tune))],
       ),
       body: RefreshIndicator(
-        onRefresh: controller.refreshCatalogData,
+        onRefresh: () async {
+          await controller.refreshCatalogData();
+          if (mounted) {
+            await controller.ensureProductsLoadedForCategory(widget.categoryId);
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Builder(
@@ -36,26 +66,30 @@ class CatalogScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (controller.productErrorMessage != null && products.isEmpty) {
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    _CatalogMessage(
-                      title: 'Unable to load products',
-                      message: controller.productErrorMessage!,
-                    ),
-                  ],
-                );
-              }
-
               if (products.isEmpty) {
+                final message = controller.productErrorMessage;
                 return ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     _CatalogMessage(
-                      title: 'No products found',
-                      message: 'There are no products in $title yet.',
+                      title: message == null
+                          ? 'No products found'
+                          : 'Unable to load products',
+                      message:
+                          message ??
+                          'There are no products in ${widget.title} yet.',
                     ),
+                    if (message != null) ...[
+                      const SizedBox(height: 18),
+                      Center(
+                        child: FilledButton(
+                          onPressed: () => controller.ensureProductsLoadedForCategory(
+                            widget.categoryId,
+                          ),
+                          child: const Text('Try Again'),
+                        ),
+                      ),
+                    ],
                   ],
                 );
               }
@@ -64,16 +98,14 @@ class CatalogScreen extends StatelessWidget {
                 itemCount: products.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.72,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
+                  childAspectRatio: 0.79,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
                 ),
                 itemBuilder: (context, index) {
                   final product = products[index];
                   return ProductTile(
                     product: product,
-                    isFavorite: controller.isFavorite(product.id),
-                    onFavoriteTap: () => controller.toggleFavorite(product.id),
                     onTap: () => _openDetail(context, product),
                   );
                 },

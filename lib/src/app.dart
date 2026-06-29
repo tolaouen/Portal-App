@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'auth/repositories/api_auth_repository.dart';
+import 'data/api_banner_repository.dart';
 import 'data/api_category_repository.dart';
 import 'data/api_order_repository.dart';
+import 'data/api_payment_repository.dart';
 import 'data/api_product_repository.dart';
-import 'data/mock_store_repository.dart';
 import 'screens/main_shell.dart';
 import 'screens/splash_screen.dart';
 import 'state/store_controller.dart';
@@ -13,11 +14,12 @@ import 'theme/app_theme.dart';
 
 void runConstructionApp() {
   final controller = StoreController(
-    repository: MockStoreRepository(),
     authRepository: ApiAuthRepository(),
+    bannerRepository: ApiBannerRepository(),
     categoryRepository: ApiCategoryRepository(),
     productRepository: ApiProductRepository(),
     orderRepository: ApiOrderRepository(),
+    paymentRepository: ApiPaymentRepository(),
   );
   runApp(ConstructionApp(controller: controller));
 }
@@ -53,8 +55,12 @@ class _ConstructionAppState extends State<ConstructionApp> {
         builder: (context, _) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Construction Tools',
+            title: 'Next Style',
             theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: widget.controller.darkModeEnabled
+                ? ThemeMode.dark
+                : ThemeMode.light,
             home: _resolveHome(widget.controller),
           );
         },

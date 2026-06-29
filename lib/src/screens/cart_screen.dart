@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../state/store_scope.dart';
+import '../theme/app_theme.dart';
 import '../widgets/store_widgets.dart';
 import 'checkout_screen.dart';
+import 'login_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -10,87 +12,154 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = StoreScope.of(context);
+    final cartItems = controller.cart
+        .where((item) => controller.productByIdOrNull(item.productId) != null)
+        .toList();
+    if (!controller.isLoggedIn) {
+      return Scaffold(
+        backgroundColor: AppTheme.mist,
+        appBar: AppBar(
+          backgroundColor: AppTheme.mist,
+          title: const Text(
+            'My Cart',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Please login to use your cart.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 16),
+                PrimaryButton(
+                  label: 'Login',
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'My Cart',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        actions: [TextButton(onPressed: () {}, child: const Text('Edit'))],
-      ),
-      body: controller.cart.isEmpty
-          ? const _EmptyCart()
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+      backgroundColor: AppTheme.mist,
+      body: SafeArea(
+        child: cartItems.isEmpty
+            ? const _EmptyCart()
+            : Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      'My Cart',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
                     Expanded(
                       child: ListView.separated(
-                        itemCount: controller.cart.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 18),
+                        itemCount: cartItems.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final item = controller.cart[index];
-                          final product = controller.productById(
+                          final item = cartItems[index];
+                          final product = controller.productByIdOrNull(
                             item.productId,
                           );
+                          if (product == null) {
+                            return const SizedBox.shrink();
+                          }
                           return Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ProductIllustration(product: product, size: 82),
+                              Container(
+                                width: 102,
+                                height: 92,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: ProductIllustration(
+                                  product: product,
+                                  size: 88,
+                                ),
+                              ),
                               const SizedBox(width: 14),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      product.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.name,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      '\$${product.price.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w800,
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '\$${product.price.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    QuantityControl(
-                                      quantity: item.quantity,
-                                      onChanged: (value) =>
-                                          controller.updateCartQuantity(
-                                            product.id,
-                                            value,
-                                          ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 8),
+                                      QuantityControl(
+                                        quantity: item.quantity,
+                                        maxQuantity: product.stock > 0
+                                            ? product.stock
+                                            : 1,
+                                        onChanged: (value) =>
+                                            controller.updateCartQuantity(
+                                              product.id,
+                                              value,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                               IconButton(
                                 onPressed: () =>
                                     controller.removeFromCart(product.id),
-                                icon: const Icon(Icons.delete_outline),
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 26,
+                                ),
                               ),
                             ],
                           );
                         },
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    _PriceRow(label: 'Subtotal', value: controller.subtotal),
+                    const SizedBox(height: 20),
+                    _PriceRow(label: 'Sub Total', value: controller.subtotal),
                     const SizedBox(height: 10),
-                    _PriceRow(label: 'Shipping', value: controller.shippingFee),
-                    const Divider(height: 30),
+                    const Divider(color: Colors.black45, height: 1),
+                    const SizedBox(height: 12),
                     _PriceRow(
                       label: 'Total',
                       value: controller.total,
                       isStrong: true,
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
                     PrimaryButton(
                       label: 'Checkout',
                       onPressed: () => Navigator.of(context).push(
@@ -102,7 +171,7 @@ class CartScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+      ),
     );
   }
 }
@@ -121,8 +190,8 @@ class _PriceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = TextStyle(
-      fontSize: isStrong ? 22 : 16,
-      fontWeight: isStrong ? FontWeight.w900 : FontWeight.w600,
+      fontSize: isStrong ? 18 : 16,
+      fontWeight: isStrong ? FontWeight.w800 : FontWeight.w700,
     );
     return Row(
       children: [
@@ -139,6 +208,11 @@ class _EmptyCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Your cart is empty'));
+    return const Center(
+      child: Text(
+        'Your cart is empty',
+        style: TextStyle(fontWeight: FontWeight.w700),
+      ),
+    );
   }
 }

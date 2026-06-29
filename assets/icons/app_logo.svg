@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#ffffff"/>
+
+  <g transform="translate(0 -8)">
+    <g fill="#c62828">
+      <path d="M314 228c-12-12-32-12-44 0l-62 62c-9 9-9 24 0 33l27 27-36 80 34 34 72-72-8-8 54-54c10-10 14-24 11-38l-10-44-38-20z"/>
+      <path d="M710 228c12-12 32-12 44 0l62 62c9 9 9 24 0 33l-27 27 36 80-34 34-72-72 8-8-54-54c-10-10-14-24-11-38l10-44 38-20z"/>
+    </g>
+
+    <g>
+      <path d="M345 495c0-95 75-173 167-177h4c98 0 178 79 178 177v75H345z" fill="#0b5f87"/>
+      <path d="M410 497h204v147H410z" fill="#0b5f87"/>
+      <path d="M385 514h254v157c0 13-11 24-24 24H409c-13 0-24-11-24-24V514z" fill="#0e6f9d"/>
+      <rect x="508" y="338" width="10" height="74" rx="5" fill="#ffffff" opacity="0.9"/>
+      <rect x="468" y="348" width="9" height="61" rx="4.5" fill="#ffffff" opacity="0.85"/>
+      <rect x="549" y="348" width="9" height="61" rx="4.5" fill="#ffffff" opacity="0.85"/>
+      <rect x="430" y="370" width="8" height="42" rx="4" fill="#ffffff" opacity="0.7"/>
+      <rect x="588" y="370" width="8" height="42" rx="4" fill="#ffffff" opacity="0.7"/>
+      <path d="M402 520h220" stroke="#0a4f6f" stroke-width="12" stroke-linecap="round"/>
+    </g>
+
+    <g fill="#0b5f87" font-family="Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif" text-anchor="middle">
+      <text x="512" y="812" font-size="112" letter-spacing="1">Construction Logo</text>
+    </g>
+  </g>
+</svg>

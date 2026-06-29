@@ -13,4 +13,28 @@ extension PaymentOptionX on PaymentOption {
         return 'Credit/Debit Card';
     }
   }
+
+  String get apiValue {
+    switch (this) {
+      case PaymentOption.cashOnDelivery:
+        return 'cash_on_delivery';
+      case PaymentOption.abaBank:
+        return 'aba_bank';
+      case PaymentOption.wing:
+        return 'wing';
+      case PaymentOption.card:
+        return 'card';
+    }
+  }
+
+  String get backendPaymentStatus {
+    switch (this) {
+      case PaymentOption.wing:
+        return 'KHQR';
+      case PaymentOption.cashOnDelivery:
+      case PaymentOption.abaBank:
+      case PaymentOption.card:
+        return 'Bank Account';
+    }
+  }
 }

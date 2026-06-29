@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import 'cart_screen.dart';
 import 'categories_screen.dart';
 import 'home_screen.dart';
+import 'login_screen.dart';
 import 'orders_screen.dart';
 import 'profile_screen.dart';
 
@@ -26,18 +27,26 @@ class MainShell extends StatelessWidget {
       body: IndexedStack(index: controller.selectedTab, children: screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: controller.selectedTab,
-        height: 74,
-        backgroundColor: AppTheme.dark,
+        height: 78,
+        backgroundColor: Colors.white,
         indicatorColor: AppTheme.brand,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           return TextStyle(
             color: states.contains(WidgetState.selected)
                 ? AppTheme.brand
-                : Colors.white70,
+                : AppTheme.dark,
             fontWeight: FontWeight.w700,
           );
         }),
-        onDestinationSelected: controller.setSelectedTab,
+        onDestinationSelected: (index) {
+          if ((index == 2 || index == 3) && !controller.isLoggedIn) {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
+            return;
+          }
+          controller.setSelectedTab(index);
+        },
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -47,21 +56,23 @@ class MainShell extends StatelessWidget {
           const NavigationDestination(
             icon: Icon(Icons.widgets_outlined),
             selectedIcon: Icon(Icons.widgets),
-            label: 'Categories',
+            label: 'Product',
           ),
           NavigationDestination(
-            icon: Badge(
-              isLabelVisible: controller.cartCount() > 0,
-              label: Text('${controller.cartCount()}'),
-              child: const Icon(Icons.shopping_cart_outlined),
+            icon: _CartNavIcon(
+              count: controller.cartCount(),
+              icon: Icons.shopping_cart_outlined,
             ),
-            selectedIcon: const Icon(Icons.shopping_cart),
+            selectedIcon: _CartNavIcon(
+              count: controller.cartCount(),
+              icon: Icons.shopping_cart,
+            ),
             label: 'Cart',
           ),
           const NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
-            label: 'Orders',
+            label: 'Order',
           ),
           const NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -70,6 +81,29 @@ class MainShell extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CartNavIcon extends StatelessWidget {
+  const _CartNavIcon({required this.count, required this.icon});
+
+  final int count;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Badge(
+      isLabelVisible: count > 0,
+      alignment: Alignment.topRight,
+      offset: const Offset(-2, 2),
+      largeSize: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      label: Text(
+        '$count',
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+      ),
+      child: Icon(icon, size: 20),
     );
   }
 }

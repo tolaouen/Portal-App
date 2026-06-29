@@ -55,34 +55,28 @@ class CategoryChipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Container(
-        width: 88,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        constraints: const BoxConstraints(minWidth: 68),
+        height: 36,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFF7F7F7),
-          borderRadius: BorderRadius.circular(18),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFF4CC),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(category.icon, color: AppTheme.dark),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              category.name,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ],
+        child: Text(
+          category.name,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.dark,
+            height: 1.0,
+          ),
         ),
       ),
     );
@@ -93,119 +87,254 @@ class ProductTile extends StatelessWidget {
   const ProductTile({
     super.key,
     required this.product,
-    required this.isFavorite,
     required this.onTap,
-    required this.onFavoriteTap,
   });
 
   final Product product;
-  final bool isFavorite;
   final VoidCallback onTap;
-  final VoidCallback onFavoriteTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: InkWell(
-                onTap: onFavoriteTap,
-                child: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? AppTheme.brand : Colors.grey.shade400,
-                  size: 20,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final illustrationSize = (constraints.maxWidth * 0.68).clamp(
+            102.0,
+            142.0,
+          );
+          final imagePanelHeight = (constraints.maxHeight * 0.40).clamp(
+            108.0,
+            122.0,
+          );
+
+          return Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2EBF2),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: ProductIllustration(product: product, size: 66),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              product.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  '\$${product.price.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const Spacer(),
-                const Icon(Icons.star, size: 14, color: AppTheme.brand),
-                const SizedBox(width: 4),
-                Text(product.rating.toStringAsFixed(1)),
               ],
             ),
-          ],
-        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: imagePanelHeight,
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(2, 2, 2, 4),
+                  padding: const EdgeInsets.fromLTRB(6, 6, 6, 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(14),
+                      topRight: Radius.circular(14),
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10),
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      if (product.isPopular)
+                        Positioned(
+                          right: -2,
+                          top: 1,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF5C92F3),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Text(
+                              'Popular',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      Center(
+                        child: ProductIllustration(
+                          product: product,
+                          size: illustrationSize,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            height: 1.12,
+                            color: AppTheme.dark,
+                          ),
+                        ),
+                        if (product.rating > 1) ...[
+                          const SizedBox(height: 0.5),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 11,
+                                color: AppTheme.brand,
+                              ),
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 11,
+                                color: AppTheme.brand,
+                              ),
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 11,
+                                color: AppTheme.brand,
+                              ),
+                              Icon(
+                                Icons.star_rounded,
+                                size: 11,
+                                color: AppTheme.brand.withValues(alpha: 0.35),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                product.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 3),
+                        SizedBox(
+                          height: 14,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              product.description,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10.5,
+                                height: 1.2,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '\$${product.price.toStringAsFixed(1)}',
+                          style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.dark,
+                          ),
+                        ),
+                        const SizedBox(height: 0.5),
+                        Text(
+                          product.stock > 0
+                              ? 'In stock: ${product.stock}'
+                              : 'Out of stock',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: product.stock > 0
+                                ? const Color(0xFF3D7CFF)
+                                : Colors.redAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 }
 
 class ProductIllustration extends StatelessWidget {
-  const ProductIllustration({super.key, required this.product, this.size = 96});
+  const ProductIllustration({
+    super.key,
+    required this.product,
+    this.imageSource,
+    this.size = 96,
+  });
 
   final Product product;
+  final String? imageSource;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final imageBytes = _decodeProductImage(product.image);
+    final resolvedImage = imageSource ?? product.image;
+    final imageBytes = _decodeProductImage(resolvedImage);
+    final imageUrl = _normalizeImageUrl(resolvedImage);
+    final hasImage = imageBytes != null || imageUrl != null;
 
-    return Container(
+    return SizedBox(
       width: size,
-      height: size,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [product.color.withValues(alpha: 0.95), Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      height: size * 0.88,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: hasImage ? 0 : 10,
+          vertical: hasImage ? 2 : 10,
         ),
-        borderRadius: BorderRadius.circular(size / 3),
+        child: imageBytes != null
+            ? Image.memory(
+                imageBytes,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => _fallbackIcon(),
+              )
+            : imageUrl != null
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => _fallbackIcon(),
+              )
+            : _fallbackIcon(),
       ),
-      child: imageBytes != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(size / 3),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Image.memory(
-                  imageBytes,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) {
-                    return Icon(
-                      product.icon,
-                      size: size * 0.52,
-                      color: AppTheme.dark,
-                    );
-                  },
-                ),
-              ),
-            )
-          : Icon(product.icon, size: size * 0.52, color: AppTheme.dark),
     );
+  }
+
+  Widget _fallbackIcon() {
+    return Icon(product.icon, size: size * 0.52, color: AppTheme.dark);
   }
 
   Uint8List? _decodeProductImage(String? rawImage) {
     if (rawImage == null || rawImage.trim().isEmpty) {
+      return null;
+    }
+
+    if (_normalizeImageUrl(rawImage) != null) {
       return null;
     }
 
@@ -218,6 +347,17 @@ class ProductIllustration extends StatelessWidget {
       return null;
     }
   }
+
+  String? _normalizeImageUrl(String? rawImage) {
+    if (rawImage == null || rawImage.trim().isEmpty) {
+      return null;
+    }
+    final normalized = rawImage.trim();
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+      return normalized;
+    }
+    return null;
+  }
 }
 
 class QuantityControl extends StatelessWidget {
@@ -225,30 +365,45 @@ class QuantityControl extends StatelessWidget {
     super.key,
     required this.quantity,
     required this.onChanged,
+    this.maxQuantity,
   });
 
   final int quantity;
   final ValueChanged<int> onChanged;
+  final int? maxQuantity;
 
   @override
   Widget build(BuildContext context) {
+    final canDecrease = quantity > 1;
+    final canIncrease =
+        maxQuantity == null ? true : quantity < (maxQuantity ?? quantity);
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F7F7),
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _QtyButton(icon: Icons.remove, onTap: () => onChanged(quantity - 1)),
+          _QtyButton(
+            icon: Icons.remove,
+            onTap: canDecrease ? () => onChanged(quantity - 1) : null,
+          ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text(
               '$quantity',
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
             ),
           ),
-          _QtyButton(icon: Icons.add, onTap: () => onChanged(quantity + 1)),
+          _QtyButton(
+            icon: Icons.add,
+            onTap: canIncrease ? () => onChanged(quantity + 1) : null,
+          ),
         ],
       ),
     );
@@ -259,15 +414,19 @@ class _QtyButton extends StatelessWidget {
   const _QtyButton({required this.icon, required this.onTap});
 
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Icon(icon, size: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        child: Icon(
+          icon,
+          size: 15,
+          color: onTap == null ? Colors.black26 : null,
+        ),
       ),
     );
   }
