@@ -1,4 +1,4 @@
-# constructtion
+# Next Style App
 
 A new Flutter project.
 
